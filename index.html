@@ -16,7 +16,7 @@
   --panel: #150d11;
   --fg: #f3dce5;          /* soft blush text */
   --muted: #9b7f8a;
-  --pink: #ff4f8b;        /* Kara's pink */
+  --pink: #ff4f8b;        /* my pink */
   --pink-soft: #ff9cbd;
   --mint: #8ff0c4;        /* command names, as in her original */
   --line: #3a2530;
@@ -192,25 +192,25 @@ const pad = (s, n) => esc(s) + " ".repeat(Math.max(1, n - s.length));
 
 const COMMANDS = {
   help:       { desc: "list all available commands", run: help },
-  whoiskara:  { desc: "read a short bio about Kara", run: () =>
+  whoiskara:  { desc: "read a short bio about me", run: () =>
       C.bio.map((p, i) => i === 0 ? `<span class="h">${esc(p)}</span>` : esc(p)).join("\n\n") },
-  experience: { desc: "show where Kara has worked", run: () =>
+  experience: { desc: "see where I've worked", run: () =>
       C.experience.map(j => `<div class="job"><span class="h">${esc(j.role)}</span> · ${esc(j.org)}\n<span class="meta">${esc(j.when)}</span>${bullets(j.points)}</div>`).join("") },
-  education:  { desc: "show Kara's education history", run: () =>
+  education:  { desc: "see my education history", run: () =>
       C.education.map(e => `<div class="job"><span class="h">${esc(e.school)}</span>\n<span class="meta">${esc(e.detail)} · ${esc(e.when)}</span>${bullets(e.points)}</div>`).join("") },
-  skills:     { desc: "list Kara's tools and skills", run: () => {
+  skills:     { desc: "see my tools and skills", run: () => {
       const w = Math.max(...C.skills.map(s => s.label.length)) + 3;
       return C.skills.map(s => `<span class="mint">${pad(s.label, w)}</span>${esc(s.items)}`).join("\n"); } },
-  projects:   { desc: "show a few of Kara's projects", run: () =>
+  projects:   { desc: "show a few of my projects", run: () =>
       C.projects.map(p => `<div class="job"><span class="h">${esc(p.name)}</span>${p.status ? ` <span class="muted">· ${esc(p.status)}</span>` : ""}\n<span class="tag">${esc(p.tech)}</span>\n${esc(p.about)}\n${p.link ? link(p.link) : ""}</div>`).join("")
       + `<span class="muted">More on GitHub: type</span> <span class="mint">github</span>` },
-  resume:     { desc: "open Kara's résumé", run: () => {
+  resume:     { desc: "open my résumé", run: () => {
       open(C.resume);
       return `Opening résumé… ${link(C.resume, "résumé (PDF)")}\n<span class="muted">Short version: type</span> <span class="mint">experience</span><span class="muted">,</span> <span class="mint">education</span> <span class="muted">or</span> <span class="mint">skills</span>`; } },
-  social:     { desc: "show Kara's social links", run: () =>
+  social:     { desc: "see my socials", run: () =>
       Object.entries(C.links).map(([k, u]) => `<span class="mint">${pad(k, 11)}</span>${link(u)}`).join("\n") },
-  github:     { desc: "open Kara's GitHub profile", run: () => { open(C.links.github); return `Opening ${link(C.links.github)}`; } },
-  design:     { desc: "open Kara's design portfolio", run: () => { open(C.links.design); return `Opening ${link(C.links.design)}`; } },
+  github:     { desc: "open my GitHub profile", run: () => { open(C.links.github); return `Opening ${link(C.links.github)}`; } },
+  design:     { desc: "open my creative portfolio", run: () => { open(C.links.design); return `Opening ${link(C.links.design)}`; } },
   email:      { desc: "email Kara", run: () => `${link("mailto:" + C.email, C.email)}<button class="copy" data-copy="${esc(C.email)}">copy</button>` },
   clear:      { desc: "clear the terminal screen", special: "clear" },
 };
