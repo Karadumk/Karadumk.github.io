@@ -1,6 +1,6 @@
 # Kara's terminal portfolio
 
-Live at **https://karadumk.github.io** once it's set up.
+Live at **https://karadumk.github.io** .
 
 ## Files
 
@@ -12,16 +12,11 @@ Live at **https://karadumk.github.io** once it's set up.
 
 ## Put the site live (one time, about 5 minutes)
 
-1. On GitHub, click **+** (top right) > **New repository**.
-2. Name it exactly `Karadumk.github.io`, set it to **Public**, and click **Create repository**.
-3. On the new repo page, click **uploading an existing file**.
-4. Drag in `index.html`, `content.js`, `resume.pdf` and this `README.md`, then click **Commit changes**.
-5. Wait a minute or two, then open **https://karadumk.github.io**.
 
 If it doesn't show up, go to the repo's **Settings > Pages** and check that the source is
 **Deploy from a branch**, branch **main**, folder **/ (root)**.
 
-## Change the text later
+## Change the text ?
 
 1. Open the repo on GitHub and click `content.js`.
 2. Click the **pencil icon** (Edit this file).
