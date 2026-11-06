@@ -1,6 +1,6 @@
 /*
   ============================================================
-  KARA'S SITE TEXT: edit this file to change what the site says.
+  SITE TEXT: edit this file to change what the site says.
   ============================================================
   Rules that keep the site working:
   - Keep text inside the quote marks: "like this".
