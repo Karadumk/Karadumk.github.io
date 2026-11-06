@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kara Dumk | terminal</title>
+<meta name="description" content="Kara Dumk: web developer and digital creative in Lagos, Nigeria.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap">
+<style>
+/* Layout: one full-height terminal pane; a typed intro screen sits on top and fades away on enter. Single dark look by choice. */
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+  --bg: #0b0709;          /* warm near-black with a rose bias */
+  --panel: #150d11;
+  --fg: #f3dce5;          /* soft blush text */
+  --muted: #9b7f8a;
+  --pink: #ff4f8b;        /* Kara's pink */
+  --pink-soft: #ff9cbd;
+  --mint: #8ff0c4;        /* command names, as in her original */
+  --line: #3a2530;
+  --hl: rgb(255 79 139 / .14);  /* light pink highlight for the row under the cursor */
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+a { color: var(--pink-soft); text-underline-offset: 3px; }
+a:hover { color: var(--pink); }
+:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+::selection { background: var(--pink); color: var(--bg); }
+
+/* ---------- intro ---------- */
+#intro {
+  position: fixed; inset: 0; z-index: 5;
+  background: var(--bg);
+  display: grid; place-items: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  transition: opacity .6s ease, visibility .6s;
+  cursor: pointer;
+}
+#intro.gone { opacity: 0; visibility: hidden; }
+.intro-box { width: min(560px, 100%); display: grid; gap: 4px; }
+.intro-nav { display: flex; gap: 18px; flex-wrap: wrap; color: var(--pink-soft); margin-bottom: 6px; }
+.intro-name {
+  font-weight: 800; color: var(--pink);
+  font-size: clamp(30px, 8vw, 56px); letter-spacing: -0.03em; line-height: 1.1;
+  margin: 0 0 14px;
+}
+.intro-line { min-height: 1.6em; white-space: pre-wrap; }
+.intro-line .d { color: var(--muted); }
+.intro-hint { margin-top: 22px; color: var(--muted); font-size: 13px; opacity: 0; transition: opacity .4s; }
+.intro-hint.show { opacity: 1; }
+.caret { display: inline-block; width: .6em; height: 1.1em; background: var(--pink); vertical-align: -0.2em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- terminal ---------- */
+#term {
+  height: 100%;
+  overflow-y: auto;
+  padding-block: 20px 28px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 860px; }
+.banner {
+  color: var(--pink); margin: 0; font-family: var(--mono);
+  font-size: clamp(7px, 2.2vw, 15px); line-height: 1;
+  overflow-x: auto;
+  background: linear-gradient(180deg, var(--pink-soft), var(--pink) 70%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.ver { color: var(--muted); font-size: 12px; margin: 4px 0 14px; }
+.welcome { color: var(--pink); margin-bottom: 10px; }
+.block { margin: 2px 0 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.prompt { color: var(--pink); white-space: nowrap; }
+.prompt b { color: var(--fg); font-weight: 400; }
+.echo { color: var(--fg); }
+.err { color: var(--pink-soft); }
+.muted { color: var(--muted); }
+.mint { color: var(--mint); }
+.pink { color: var(--pink); }
+.h { color: var(--pink); font-weight: 600; }
+
+.cmds { display: grid; gap: 1px; white-space: normal; margin: 2px 0 4px -8px; max-width: 640px; }
+.cmds .row {
+  display: grid; grid-template-columns: 12ch 1fr; column-gap: 12px;
+  font: inherit; color: var(--fg); background: transparent; border: 0;
+  padding: 1px 8px; border-radius: 4px; text-align: left; cursor: pointer;
+  transition: background-color .12s ease;
+}
+.cmds .row:hover, .cmds .row:focus-visible { background: var(--hl); outline: none; }
+.cmds .row:hover span:last-child, .cmds .row:focus-visible span:last-child { color: var(--pink-soft); }
+@media (max-width: 480px) { .cmds .row { grid-template-columns: 11ch 1fr; column-gap: 8px; } }
+
+.job { margin-bottom: 12px; white-space: pre-line; }
+.job .meta { color: var(--muted); }
+.job ul { white-space: normal; margin: 2px 0 0; padding-left: 2ch; list-style: none; }
+.job li { position: relative; }
+.job li::before { content: "›"; position: absolute; left: -2ch; color: var(--pink); }
+.tag { color: var(--mint); }
+
+.copy {
+  font: inherit; font-size: 12px; color: var(--bg); background: var(--pink);
+  border: 0; border-radius: 3px; padding: 1px 8px; margin-left: 10px; cursor: pointer;
+}
+
+/* input line */
+.line { display: flex; gap: 1ch; align-items: baseline; position: relative; }
+#cmd {
+  flex: 1; min-width: 0;
+  font: inherit; color: var(--fg); background: transparent;
+  border: 0; outline: none; caret-color: var(--pink); padding: 0;
+}
+
+/* slash menu */
+#menu {
+  position: absolute; left: 0; bottom: calc(100% + 6px);
+  width: min(440px, 100%);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 4px; margin: 0; list-style: none;
+  box-shadow: 0 10px 30px rgb(0 0 0 / .5);
+  max-height: 240px; overflow-y: auto;
+}
+#menu.below { bottom: auto; top: calc(100% + 6px); }
+#menu li { padding: 3px 8px; border-radius: 4px; cursor: pointer; display: flex; gap: 1.2ch; white-space: nowrap; overflow: hidden; transition: background-color .12s ease; }
+#menu li b { color: var(--fg); font-weight: 600; }
+#menu li span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+#menu li.on { background: var(--hl); }
+#menu li.on b { color: var(--pink); }
+#menu li.on span { color: var(--pink-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  #intro { transition: none; }
+  .caret { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="intro" role="button" tabindex="0" aria-label="Enter Kara's terminal">
+  <div class="intro-box">
+    <h1 class="intro-name">kara:~$</h1>
+    <div class="intro-line" id="l1"></div>
+    <div class="intro-line" id="l2"></div>
+    <div class="intro-line" id="l3"></div>
+    <div class="intro-line" id="l4"></div>
+    <div class="intro-hint" id="hint">press any key or tap to enter</div>
+  </div>
+</div>
+
+<main id="term" aria-label="Kara's terminal portfolio">
+  <div class="wrap">
+    <div id="out" aria-live="polite"></div>
+    <div class="line">
+      <label for="cmd" class="prompt">guest@kara<b>:</b>~$</label>
+      <input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-autocomplete="list" aria-controls="menu">
+      <ul id="menu" role="listbox" hidden></ul>
+    </div>
+  </div>
+</main>
+
+<script src="content.js"></script>
+<script>
+(() => {
+const C = window.CONTENT;
+const BANNER =
+`██╗  ██╗ █████╗ ██████╗  █████╗
+██║ ██╔╝██╔══██╗██╔══██╗██╔══██╗
+█████╔╝ ███████║██████╔╝███████║
+██╔═██╗ ██╔══██║██╔══██╗██╔══██║
+██║  ██╗██║  ██║██║  ██║██║  ██║
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝`;
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const short = u => u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+const link = (href, text) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(text || short(href))}</a>`;
+const bullets = pts => pts && pts.length ? `<ul>${pts.map(p => `<li>${esc(p)}</li>`).join("")}</ul>` : "";
+const pad = (s, n) => esc(s) + " ".repeat(Math.max(1, n - s.length));
+
+const COMMANDS = {
+  help:       { desc: "list all available commands", run: help },
+  whoiskara:  { desc: "read a short bio about Kara", run: () =>
+      C.bio.map((p, i) => i === 0 ? `<span class="h">${esc(p)}</span>` : esc(p)).join("\n\n") },
+  experience: { desc: "show where Kara has worked", run: () =>
+      C.experience.map(j => `<div class="job"><span class="h">${esc(j.role)}</span> · ${esc(j.org)}\n<span class="meta">${esc(j.when)}</span>${bullets(j.points)}</div>`).join("") },
+  education:  { desc: "show Kara's education history", run: () =>
+      C.education.map(e => `<div class="job"><span class="h">${esc(e.school)}</span>\n<span class="meta">${esc(e.detail)} · ${esc(e.when)}</span>${bullets(e.points)}</div>`).join("") },
+  skills:     { desc: "list Kara's tools and skills", run: () => {
+      const w = Math.max(...C.skills.map(s => s.label.length)) + 3;
+      return C.skills.map(s => `<span class="mint">${pad(s.label, w)}</span>${esc(s.items)}`).join("\n"); } },
+  projects:   { desc: "show a few of Kara's projects", run: () =>
+      C.projects.map(p => `<div class="job"><span class="h">${esc(p.name)}</span>${p.status ? ` <span class="muted">· ${esc(p.status)}</span>` : ""}\n<span class="tag">${esc(p.tech)}</span>\n${esc(p.about)}\n${p.link ? link(p.link) : ""}</div>`).join("")
+      + `<span class="muted">More on GitHub: type</span> <span class="mint">github</span>` },
+  resume:     { desc: "open Kara's résumé", run: () => {
+      open(C.resume);
+      return `Opening résumé… ${link(C.resume, "résumé (PDF)")}\n<span class="muted">Short version: type</span> <span class="mint">experience</span><span class="muted">,</span> <span class="mint">education</span> <span class="muted">or</span> <span class="mint">skills</span>`; } },
+  social:     { desc: "show Kara's social links", run: () =>
+      Object.entries(C.links).map(([k, u]) => `<span class="mint">${pad(k, 11)}</span>${link(u)}`).join("\n") },
+  github:     { desc: "open Kara's GitHub profile", run: () => { open(C.links.github); return `Opening ${link(C.links.github)}`; } },
+  design:     { desc: "open Kara's design portfolio", run: () => { open(C.links.design); return `Opening ${link(C.links.design)}`; } },
+  email:      { desc: "email Kara", run: () => `${link("mailto:" + C.email, C.email)}<button class="copy" data-copy="${esc(C.email)}">copy</button>` },
+  clear:      { desc: "clear the terminal screen", special: "clear" },
+};
+const EXTRA = {
+  whoami: () => "guest. but you could be Kara's next teammate.",
+  sudo: () => `<span class="err">nice try.</span> permission denied.`,
+  date: () => esc(new Date().toString()),
+  ls: () => Object.keys(COMMANDS).join("  "),
+  hi: () => `hi there! type <span class="mint">help</span> to look around.`,
+};
+EXTRA.hello = EXTRA.hi; EXTRA.cls = () => null;
+
+function help() {
+  const rows = Object.entries(COMMANDS).map(([k, v]) =>
+    `<button type="button" class="row" data-run="${k}"><span class="mint">${k}</span><span>${v.desc}</span></button>`).join("");
+  return `Available commands:<div class="cmds">${rows}</div><span class="muted">Tip: type / for a menu, Tab to autocomplete, ↑ ↓ for history, Ctrl+L to clear.</span>`;
+}
+
+function open(url) { try { window.open(url, "_blank", "noopener"); } catch (e) {} }
+
+/* ---------- terminal ---------- */
+const out = document.getElementById("out");
+const input = document.getElementById("cmd");
+const menu = document.getElementById("menu");
+const term = document.getElementById("term");
+const history = [];
+let hIdx = 0;
+
+function print(html, cls) {
+  const d = document.createElement("div");
+  d.className = "block" + (cls ? " " + cls : "");
+  d.innerHTML = html;
+  out.appendChild(d);
+  return d;
+}
+function showBanner() {
+  print(`<pre class="banner" aria-label="KARA">${BANNER}</pre><div class="ver">${esc(C.tagline)}</div><div class="welcome">Welcome to Kara's terminal portfolio.\nType 'help' or '/' to see available commands.</div>`);
+}
+function scrollDown() { term.scrollTop = term.scrollHeight; }
+function clearScreen() { out.innerHTML = ""; showBanner(); term.scrollTop = 0; input.focus({ preventScroll: true }); }
+
+function run(raw) {
+  const text = raw.trim();
+  const echo = print(`<span class="prompt">guest@kara<b>:</b>~$</span> <span class="echo">${esc(raw)}</span>`);
+  echo.style.marginBottom = "2px";
+  if (!text) return scrollDown();
+  history.push(text); hIdx = history.length;
+  const name = text.replace(/^\//, "").split(/\s+/)[0].toLowerCase();
+  const c = COMMANDS[name];
+  if (c && c.special === "clear" || name === "cls") return clearScreen();
+  if (c) print(c.run());
+  else if (EXTRA[name]) print(EXTRA[name]());
+  else print(`<span class="err">command not found: ${esc(name)}</span>. Type <span class="mint">help</span> to see what's here.`);
+  scrollDown();
+}
+
+
+/* slash menu */
+let items = [], sel = 0;
+// Open the menu above the prompt, or below it when there isn't room above.
+function placeMenu() {
+  const room = input.getBoundingClientRect().top - term.getBoundingClientRect().top;
+  const below = room < menu.offsetHeight + 12;
+  menu.classList.toggle("below", below);
+  if (below) {
+    const over = menu.getBoundingClientRect().bottom - term.getBoundingClientRect().bottom;
+    if (over > 0) term.scrollTop += over + 12;
+  }
+}
+function renderMenu() {
+  const v = input.value;
+  if (!v.startsWith("/")) { menu.hidden = true; return; }
+  const q = v.slice(1).toLowerCase();
+  items = Object.keys(COMMANDS).filter(k => k.startsWith(q));
+  if (!items.length) { menu.hidden = true; return; }
+  sel = Math.min(sel, items.length - 1);
+  menu.innerHTML = items.map((k, i) =>
+    `<li role="option" data-k="${k}" class="${i === sel ? "on" : ""}" aria-selected="${i === sel}"><b>/${k}</b><span>${COMMANDS[k].desc}</span></li>`).join("");
+  menu.hidden = false;
+  placeMenu();
+  const on = menu.querySelector(".on");
+  if (on) { // keep the highlighted row visible inside the menu only, without moving the page
+    if (on.offsetTop < menu.scrollTop) menu.scrollTop = on.offsetTop - 4;
+    else if (on.offsetTop + on.offsetHeight > menu.scrollTop + menu.clientHeight) menu.scrollTop = on.offsetTop + on.offsetHeight - menu.clientHeight + 4;
+  }
+}
+menu.addEventListener("mousemove", e => {
+  const li = e.target.closest("li"); if (!li) return;
+  const i = items.indexOf(li.dataset.k);
+  if (i !== sel) { sel = i; menu.querySelectorAll("li").forEach((el, n) => { el.classList.toggle("on", n === sel); el.setAttribute("aria-selected", n === sel); }); }
+});
+menu.addEventListener("mousedown", e => {
+  const li = e.target.closest("li"); if (!li) return;
+  e.preventDefault(); input.value = ""; menu.hidden = true; run(li.dataset.k);
+});
+
+input.addEventListener("input", () => { sel = 0; renderMenu(); });
+input.addEventListener("keydown", e => {
+  const menuOpen = !menu.hidden;
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const v = menuOpen ? items[sel] : input.value;
+    input.value = ""; menu.hidden = true; run(v);
+  } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const dir = e.key === "ArrowDown" ? 1 : -1;
+    if (menuOpen) { sel = (sel + dir + items.length) % items.length; renderMenu(); return; }
+    if (!history.length) return;
+    hIdx = Math.max(0, Math.min(history.length, hIdx + dir));
+    input.value = history[hIdx] || "";
+  } else if (e.key === "Tab") {
+    e.preventDefault();
+    if (menuOpen) { input.value = "/" + items[sel]; renderMenu(); return; }
+    const v = input.value.toLowerCase();
+    const m = Object.keys(COMMANDS).filter(k => k.startsWith(v));
+    if (v && m.length === 1) input.value = m[0];
+    else if (v && m.length > 1) { print(`<span class="prompt">guest@kara<b>:</b>~$</span> ${esc(input.value)}`); print(m.join("  ")); scrollDown(); }
+  } else if (e.key === "Escape") {
+    menu.hidden = true;
+  } else if (e.key.toLowerCase() === "l" && e.ctrlKey) {
+    e.preventDefault(); clearScreen();
+  }
+});
+
+out.addEventListener("click", e => {
+  const b = e.target.closest("[data-run]");
+  if (b) { run(b.dataset.run); input.focus({ preventScroll: true }); return; }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    const done = () => { c.textContent = "copied"; setTimeout(() => c.textContent = "copy", 1500); };
+    try { navigator.clipboard.writeText(c.dataset.copy).then(done, () => selectText(c.previousElementSibling)); }
+    catch (err) { selectText(c.previousElementSibling); }
+  }
+});
+function selectText(el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+term.addEventListener("click", e => { if (!e.target.closest("a,button") && !getSelection().toString()) input.focus(); });
+
+/* ---------- intro ---------- */
+const intro = document.getElementById("intro");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ids = ["l1", "l2", "l3", "l4"];
+let entered = false;
+function enter() {
+  if (entered) return; entered = true;
+  intro.classList.add("gone");
+  showBanner();
+  setTimeout(() => input.focus({ preventScroll: true }), reduce ? 0 : 300);
+}
+function fmt(t) { return esc(t).replace(/^(\$)/, '<span class="d">$1</span>'); }
+async function typeIntro() {
+  const caret = '<span class="caret"></span>';
+  const lines = C.intro.slice(0, 4);
+  let last;
+  for (let n = 0; n < lines.length; n++) {
+    const el = document.getElementById(ids[n]), text = lines[n]; last = el;
+    if (reduce) { el.innerHTML = fmt(text); continue; }
+    for (let i = 1; i <= text.length; i++) {
+      if (entered) return;
+      el.innerHTML = fmt(text.slice(0, i)) + caret;
+      await new Promise(r => setTimeout(r, 32));
+    }
+    el.innerHTML = fmt(text);
+    await new Promise(r => setTimeout(r, 220));
+  }
+  if (last) last.innerHTML += caret;
+  document.getElementById("hint").classList.add("show");
+  setTimeout(enter, 1600);
+}
+intro.addEventListener("click", enter);
+addEventListener("keydown", e => { if (!entered) { e.preventDefault(); enter(); } }, { capture: true });
+typeIntro();
+})();
+</script>
+</body>
+</html>
