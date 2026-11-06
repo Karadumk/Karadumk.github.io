@@ -19,7 +19,7 @@ window.CONTENT = {
 
   // The lines typed out on the intro screen.
   intro: [
-    "\\[._.]/ Hey there, I'm Kara Dumk",
+    "\\[._.]/ Hey there, I'm Kara",
     "$ web developer & digital creative",
     "$ based in Lagos, Nigeria",
     "$ booting terminal...",
@@ -34,9 +34,8 @@ window.CONTENT = {
   // Shown by the "whoiskara" command. Each item is a paragraph.
   bio: [
     "Hi, I'm Kara! Web developer and digital creative in Lagos, Nigeria.",
-    "My digital work is all about minimalism and playfulness. I'm passionate about design, tech and branding, and I build on both sides: backend APIs in Python, and brand visuals and social content.",
-    "My goal is to make my mark in digital media and tech.",
-    "Currently open to full-time opportunities.",
+    "My digital work is all about minimalism and playfulness. I'm love everything social media, tech and branding. I build on both sides: backend APIs in Python, and brand visuals and social media content.",
+    "Currently open to full-time remote opportunities.",
   ],
 
   // Shown by the "experience" command, newest first.
