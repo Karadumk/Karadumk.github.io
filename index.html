@@ -194,6 +194,7 @@ const COMMANDS = {
   help:       { desc: "list all available commands", run: help },
   whoiskara:  { desc: "read a short bio about me", run: () =>
       C.bio.map((p, i) => i === 0 ? `<span class="h">${esc(p)}</span>` : esc(p)).join("\n\n") },
+  whoami:     { desc: "who are you?", run: () => "guest. but you could be my next teammate." },
   experience: { desc: "see where I've worked", run: () =>
       C.experience.map(j => `<div class="job"><span class="h">${esc(j.role)}</span> · ${esc(j.org)}\n<span class="meta">${esc(j.when)}</span>${bullets(j.points)}</div>`).join("") },
   education:  { desc: "see my education history", run: () =>
